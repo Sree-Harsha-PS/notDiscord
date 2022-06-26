@@ -10,8 +10,9 @@ int main(){
         if(!iomode){ //receive
             for(int i=0; i<myserver.nClient; i++)
                 myserver.Read(myserver.clients[i]);
-            puts(myserver.messages[0].message);
+            puts(myserver.messages[1].message);
             iomode=1;
+            printf("%d", myserver.nClient);
         }
         if(iomode){ //send
             for(int i=0; i<myserver.nClient; i++){

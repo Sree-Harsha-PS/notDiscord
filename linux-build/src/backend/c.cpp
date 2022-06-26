@@ -2,10 +2,10 @@
 #include "client.hpp"
 
 int main(){
-    Client myclient;
+    Client myclient; //make separate function for mylclient.connect
     int iomode=0;
     int run=1;
-    char inputMsg[1024];
+    char inputMsg[1024] = {0};
     while(run){
         if(!iomode){
             fgets(inputMsg, 1024, stdin);

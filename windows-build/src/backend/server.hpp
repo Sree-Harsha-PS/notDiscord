@@ -72,6 +72,8 @@ Server::Server(){
         exit(EXIT_FAILURE);
     }
 
+    messages.push_back(temp);
+
     printf("\nSERVER IS UP AND RUNNING...");
     printf("\nLISTENING FOR INCOMING CONNECTIONS...\n");
 }
@@ -90,9 +92,9 @@ void Server::Listen(){
 
 //Runs on the same thread as Listen() after Listen();
 void Server::Accept(){
-    nClient++;
     if(!((clients[nClient] = accept(server_fd, (struct sockaddr*)&address, (socklen_t*)&addrlen)) < 0)){
         perror("\nACCEPTED CONNECTION");
+        nClient++;
     }
     else{
         perror("\nCONNECTION FAILED");
@@ -108,9 +110,9 @@ void Server::Read(int fromSocket){
     for(int i=0;i<1088;i++){
         if(i<32)
             temp.sender[i] = rcvBuffer[i];
-        if(i>32 && i<1056)
+        if(i>=32 && i<1056)
             temp.message[i-32] = rcvBuffer[i];
-        if(i>1056)
+        if(i>=1056 && i<1088)
             temp.timestamp[i-1056] = rcvBuffer[i]; 
     }
     //Enqueue this message struct
@@ -124,17 +126,17 @@ void Server::Send(int toSocket){
     for(int i=0; i<1088; i++){
         if(i<32)
             sendBuffer[i] = temp.sender[i];
-        if(i>32 && i<1056)
-            sendBuffer[i] = temp.sender[i-32];
-        if(i>1056)
-            sendBuffer[i] = temp.sender[i-1056];
+        if(i>=32 && i<1056)
+            sendBuffer[i] = temp.message[i-32];
+        if(i>=1056 && i<1088)
+            sendBuffer[i] = temp.timestamp[i-1056];
     }
     //Dequeue this struct element
-    messages.erase(messages.begin());
+    messages.erase(messages.cbegin()+1);
     
-    if(valread = send(toSocket, sendBuffer, sizeof(sendBuffer), 0)<0){
+    if((valread = send(toSocket, sendBuffer, sizeof(sendBuffer), 0))<0){
         perror("\nWhoops, Couldn't SEND");
     }
 
-    for(int i=0; i<sizeof(sendBuffer); i++){sendBuffer[i]=0;}
+    for(int i=0; i<1024; i++){sendBuffer[i]=0;}
 }

@@ -7,6 +7,8 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <vector>
+#include <iostream>
+#include <cstring>
 
 class Client{
     public:
@@ -57,8 +59,10 @@ Client::Client(){
         exit(EXIT_FAILURE);
 	}
 
+    messages.push_back(temp);
+
     printf("CONNECTED !");
-    printf("\nCLIENT UP AND RUNNING...");
+    printf("\nCLIENT UP AND RUNNING...\n");
 }
 
 void Client::Read(){
@@ -69,10 +73,10 @@ void Client::Read(){
     for(int i=0;i<1088;i++){
         if(i<32)
             temp.sender[i] = rcvBuffer[i];
-        if(i>32 && i<1056)
+        if(i>=32 && i<1056)
             temp.message[i-32] = rcvBuffer[i];
-        if(i>1056)
-            temp.timestamp[i-1056] = rcvBuffer[i]; 
+        if(i>=1056 && i<1088)
+            temp.timestamp[i-1056] = rcvBuffer[i];
     }
     //Enqueue this message struct
     messages.push_back(temp);
@@ -82,24 +86,25 @@ void Client::Read(){
 
 void Client::Send(char sendMessage[]){
     //Deconstruct message struct from queue at messages[0] into from, message, timestamp into sendBuffer
-    for(int i=0; i<1024; i++){ //Generate timestamp and sender too
+    for(int i=0; i<1024; i++){
         temp.message[i] = sendMessage[i];
     }
-
+    
     for(int i=0; i<1088; i++){
+        //printf("e");
         if(i<32)
             sendBuffer[i] = temp.sender[i];
-        if(i>32 && i<1056)
-            sendBuffer[i] = temp.sender[i-32];
-        if(i>1056)
-            sendBuffer[i] = temp.sender[i-1056];
+        if(i>=32 && i<1056)
+            sendBuffer[i] = temp.message[i-32];
+        if(i>=1056 && i<1088)
+            sendBuffer[i] = temp.timestamp[i-1056];
     }
-    //Dequeue this struct element
-    messages.erase(messages.begin());
-    
-    if(valread = send(sock, sendBuffer, sizeof(sendBuffer), 0)<0){
+
+    //Dequeue this struct element -no need, need all the messages stored to display
+
+    if((valread = send(sock, sendBuffer, sizeof(sendBuffer), 0))<0){
         perror("\nWhoops, Couldn't SEND");
     }
 
-    for(int i=0; i<sizeof(sendBuffer); i++){sendBuffer[i]=0;}
+    for(int i=0; i<1024; i++){sendBuffer[i]=0;}
 }
